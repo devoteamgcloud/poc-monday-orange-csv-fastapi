@@ -1,0 +1,53 @@
+from src.config import settings
+
+PROJECT_BOARD_CONFIG = {
+    "BOARD_ID": settings.projects_board_id, # Replace with your actual Parent Board ID
+    "COLUMN_MAP": {
+        'Status': 'color_mkvpbdz6',
+        'Key': 'text_mkvpgd5x',
+        'Domain List': 'color_mkvpqezn',
+        'ID OCarto': 'text_mkvppa7w',
+        'Application List': 'dropdown_mkvp5w18',
+        'T-1': 'date_mkvpxm4n',
+        'T0': 'date_mkvppqey',
+        'Begin Date': 'date_mkvp5tcb',
+        'Actual T-1': 'date_mkvp5xvb',
+        'Actual T0': 'date_mkvpvwgn',
+        'Date MEP': 'date_mkvpxera',
+        'Environment': 'color_mkvpwb9n',
+        'Type': 'color_mkvp5j1x',
+        'Project Type': 'color_mkvpdxpf',
+        'Source': 'color_mkvpzanf',
+        'Hosting': 'color_mkvp29qy',
+        'Project': 'color_mkvpxtzb',
+        'Phase': 'color_mkvpb4h2',
+        'Issue Type': 'color_mkvprh24',
+        'Parent': 'text_mkvphwdf',
+    }
+}
+
+SUBTASK_BOARD_CONFIG = {
+    "BOARD_ID": settings.subtasks_board_id,  
+    "COLUMN_MAP": {
+        'Status': 'color_mkvpbdz6',
+        'Key': 'text_mkvpgd5x',
+        'Domain List': 'color_mkvpqezn',
+        'ID OCarto': 'text_mkvppa7w',
+        'Application List': 'dropdown_mkvp5w18',
+        'T-1': 'date_mkvpxm4n',
+        'T0': 'date_mkvppqey',
+        'Begin Date': 'date_mkvp5tcb',
+        'Actual T-1': 'date_mkvp5xvb',
+        'Actual T0': 'date_mkvpvwgn',
+        'Date MEP': 'date_mkvpxera',
+        'Environment': 'color_mkvpwb9n',
+        'Type': 'color_mkvp5j1x',
+        'Project Type': 'color_mkvpdxpf',
+        'Source': 'color_mkvpzanf',
+        'Hosting': 'color_mkvp29qy',
+        'Project': 'color_mkvpxtzb',
+        'Phase': 'color_mkvpb4h2',
+        'Issue Type': 'color_mkvprh24',
+        'Parent': 'text_mkvphwdf',
+    }
+}
