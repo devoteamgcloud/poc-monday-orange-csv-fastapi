@@ -5,9 +5,27 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "black>=25.1.0",
     "fastapi[standard]>=0.116.1",
     "httpx>=0.28.1",
     "monday-code>=2.0.0",
+    "mypy>=1.18.1",
     "pandas>=2.3.2",
     "pydantic-settings>=2.10.1",
+    "ruff>=0.13.0",
 ]
+
+[tool.black]
+line-length = 200
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "I"]  # Error, Formatting, Imports
+ignore = ["E501"]         # Example: ignore line-length errors (Black handles this)
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+strict = true

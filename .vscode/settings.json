@@ -1,0 +1,6 @@
+{
+    "python"
+  "python.formatting.provider": "black",
+  "editor.formatOnSave": true,
+  "ruff.lintOnSave": true
+}

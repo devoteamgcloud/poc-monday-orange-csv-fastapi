@@ -3,13 +3,14 @@ import httpx
 from src.config import settings
 from src.logger import logger
 
+
 class MondayService:
     def __init__(self):
         self.api_token = settings.monday_api_token
         self.api_endpoint = settings.monday_api_endpoint
         self.headers = {"Authorization": self.api_token}
         # Create client for reusing connections
-        self.client = httpx.Client()
+        self.client = httpx.Client(url=self.api_endpoint, headers=self.headers)
 
     def __del__(self):
         self.client.close()
@@ -18,15 +19,22 @@ class MondayService:
         self,
         json: str = None,
     ):
-
-        r = self.client.post(headers=self.headers, url=self.api_endpoint, json=json)
+        r = self.client.post(json=json)
         r.raise_for_status()
-
         return r.json()
 
     def fetch_monday_items(
         self, items_keys: list[str], board_id: str, key_column_id: str
-    ):
+    ) -> dict:
+        """
+        Fetch all items from a Board by key_column_id matching any of items_keys.
+        Uses pagination to retrieve all items if necessary.
+        Returns a map of items with the key being the value in the key_column_id.
+        @param items_keys: List of keys to search for in the key_column_id.
+        @param board_id: ID of the board to search.
+        @param key_column_id: ID of the column to match the keys against.
+        @return: Dictionary mapping item keys to their details.
+        """
 
         query = """
           query ($boardId: ID!, $columnId: String!, $itemsKeys: [String]!, $cursor: String) {
@@ -79,7 +87,14 @@ class MondayService:
 
                 # Process the fetched items and assign the column values to the map
                 for item in items:
-                    item_jira_key = next((cv["text"] for cv in item["column_values"] if cv["id"] == key_column_id), None)
+                    item_jira_key = next(
+                        (
+                            cv["text"]
+                            for cv in item["column_values"]
+                            if cv["id"] == key_column_id
+                        ),
+                        None,
+                    )
 
                     if item_jira_key:
                         monday_items_map[item_jira_key] = {
@@ -87,7 +102,7 @@ class MondayService:
                             "name": item["name"],
                             "column_values": item["column_values"],
                         }
-                
+
                 # Check if there's a next page
                 cursor = result_data.get("cursor")
                 if not cursor:
@@ -97,7 +112,9 @@ class MondayService:
                 logger.info(f"Fetching next page with cursor: {cursor}")
 
             except httpx.HTTPError as e:
-                logger.error(f"Error fetching items: {e.response.json() if hasattr(e.response, 'json') else str(e)}")
+                logger.error(
+                    f"Error fetching items: {e.response.json() if hasattr(e.response, 'json') else str(e)}"
+                )
                 break
 
         return monday_items_map
