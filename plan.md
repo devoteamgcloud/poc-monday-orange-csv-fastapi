@@ -1,10 +1,8 @@
 ### Delta
 
-1. Import delta CSV
-2. Query Monday for CSV projects and subtasks by name
+1. Import delta CSV, separating projects and subtasks
+2. Query Monday for CSV projects by CSV Key
     
-    -> if CSV bigger than 100 implement pagination and merge object
-
-    
-    2.1 Format CSV
-    2.2 Add
+    ! use cursor for pagination
+    ! assign result to a dictionnary
+3. 

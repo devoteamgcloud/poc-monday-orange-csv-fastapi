@@ -16,7 +16,7 @@ query {
       	column_values {
           column {
         		title
-      		}
+          }
           value
           text
         }
@@ -28,7 +28,7 @@ query {
             text
           }
         }
-    	}
-  	}
+      }
+    }
   }
 }
