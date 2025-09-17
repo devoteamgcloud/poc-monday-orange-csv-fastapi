@@ -16,7 +16,6 @@ class Singleton(type):
 class Logger(metaclass=Singleton):
     def __init__(self) -> None:
         self._logger = None
-
         self._logger = logging.getLogger(settings.log_name)
 
         # Prevent the logger from propagating messages to the root logger
