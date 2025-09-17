@@ -1,5 +1,8 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from src.models import mapping
+
+
 class Settings(BaseSettings):
     env: str = "dev"
 
@@ -13,8 +16,6 @@ class Settings(BaseSettings):
 
     project_board_mapping: dict = mapping.PROJECT_BOARD_CONFIG
     subtask_board_mapping: dict = mapping.SUBTASK_BOARD_CONFIG
-
-
 
     model_config = SettingsConfigDict(env_file=".env")
 

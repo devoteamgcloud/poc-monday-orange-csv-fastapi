@@ -1,4 +1,5 @@
 import json
+import pprint
 
 import httpx
 import pandas as pd
@@ -114,26 +115,27 @@ class MondayService:
                         else str(monday_value).strip()
                     )
 
-                    #  Parse Jira date (DD-MM-YY) and reformat to Monday's (YYYY-MM-DD)
+                    #  Parse Jira date (dd-mm-yyyy HH:MM:SS) and reformat to Monday's (yyyy-mm-dd)
                     if monday_id.startswith("date_"):
                         try:
-                            # First try parsing with date and time format (e.g. "dd-mm-yyyy HH:MM:SS")
+                            # Parse with dayfirst=True to correctly interpret dd-mm-yyyy format
                             parsed_date = pd.to_datetime(
-                                jira_value, format="%d-%m-%Y %H:%M:%S", errors="coerce"
+                                jira_value, dayfirst=True, errors="coerce"
                             )
-                            if pd.isna(parsed_date):
-                                # If that fails, try parsing just the date (e.g. "dd-mm-yyyy")
-                                parsed_date = pd.to_datetime(
-                                    jira_value, format="%d-%m-%Y", errors="coerce"
-                                )
-                        except Exception:
-                            # If both parsing attempts fail, set to NaT (Not a Time)
-                            parsed_date = pd.NaT
 
-                        # If parsed_date is valid, format it for Monday.com
-                        if pd.notna(parsed_date):
-                            jira_value_str = parsed_date.strftime("%Y-%m-%d")
-                        else:
+                            if pd.notna(parsed_date):
+                                # Format using components to ensure correct order
+                                year = parsed_date.year
+                                month = parsed_date.month
+                                day = parsed_date.day
+                                jira_value_str = f"{year:04d}-{month:02d}-{day:02d}"
+                            else:
+                                jira_value_str = ""
+
+                        except Exception as e:
+                            logger.warning(
+                                f"Could not parse date '{jira_value}': {str(e)}"
+                            )
                             jira_value_str = ""
 
                     # Compare string representation
@@ -273,3 +275,85 @@ class MondayService:
                 break
 
         return monday_items_map
+
+    def execute_mutations(
+        self, board_id: str, items_to_create: list[dict], items_to_update: list[dict]
+    ):
+        """
+        Execute create and update mutations for Monday.com items.
+        """
+
+        if items_to_create:
+            logger.info(f"Creating {len(items_to_create)} items...")
+
+            create_query = """
+            mutation ($boardId: ID!, $itemName: String!, $columnValues: JSON!) {
+              create_item (
+                board_id: $boardId,
+                item_name: $itemName,
+                column_values: $columnValues
+              ) {
+                id
+              }
+            }
+            """
+            for item in items_to_create:
+                variables = {
+                    "itemName": item["name"],
+                    "boardId": board_id,
+                    "columnValues": item["column_values"],
+                }
+                try:
+                    print("***Creating item:***")
+                    pprint.pprint(item)
+
+                    response = self._call(
+                        json={"query": create_query, "variables": variables}
+                    )
+                    if "errors" in response:
+                        logger.error(
+                            f"Error creating item '{item['name']}': {response['errors']}"
+                        )
+                    else:
+                        logger.info(
+                            f"Item '{item['name']}' created with ID: {response['data']['create_item']['id']}"
+                        )
+                except httpx.HTTPError as e:
+                    logger.error(f"HTTP error creating item '{item['name']}': {str(e)}")
+
+        if items_to_update:
+            logger.info(f"Updating {len(items_to_update)} items...")
+
+            update_query = """
+            mutation ($itemId: ID!, $boardId: ID!, $columnValues: JSON!) {
+                change_multiple_column_values (
+                    board_id: $boardId,
+                    item_id: $itemId,
+                    column_values: $columnValues
+                ) {
+                    id
+                }
+            }
+            """
+            for item in items_to_update:
+                variables = {
+                    "boardId": board_id,
+                    "itemId": item["item_id"],
+                    "columnValues": json.dumps(item["column_values"]),
+                }
+                try:
+                    print("***Updating item ID:***")
+                    pprint.pprint(item)
+                    response = self._call(json={'query': update_query, 'variables': variables})
+                    if "errors" in response:
+                        logger.error(
+                            f"Error updating item ID '{item['item_id']}': {response['errors']}"
+                        )
+                    else:
+                        logger.info(
+                            f"Item ID '{item['item_id']}' updated successfully."
+                        )
+                except httpx.HTTPError as e:
+                    logger.error(
+                        f"HTTP error updating item ID '{item['item_id']}': {str(e)}"
+                    )

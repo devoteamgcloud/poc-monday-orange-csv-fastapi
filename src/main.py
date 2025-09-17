@@ -17,7 +17,7 @@ def read_root(monday_service: Annotated[MondayService, Depends()]):
     df_projects, df_subtasks = csv.load_and_filter("sample.csv")
     logger.info(f"CSV Projects: {len(df_projects)}, Subtasks: {len(df_subtasks)}")
 
-    # Process parents
+    # Process projects
     if df_projects is not None and not df_projects.empty:
         logger.info("***Processing Projects***")
         projects_keys = df_projects["Key"].tolist()
@@ -31,7 +31,7 @@ def read_root(monday_service: Annotated[MondayService, Depends()]):
         print("Existing Projects in Monday:")
         pprint.pprint(existing_projects)
 
-    # Prepare inserts and mutations
+    # Prepare inserts and mutations by comparing CSV with existing items in Monday
     projects_to_create, projects_to_update = monday_service.prepare_mutations(
         csv_df=df_projects, board_mapping=settings.project_board_mapping, monday_items=existing_projects
     )
@@ -39,5 +39,9 @@ def read_root(monday_service: Annotated[MondayService, Depends()]):
     pprint.pprint(projects_to_create)
     print("***Projects to update***")
     pprint.pprint(projects_to_update)
+
+    # Insert and update projects in Monday
+    monday_service.execute_mutations(settings.projects_board_id, projects_to_create, projects_to_update)
+    logger.info("***Finished processing projects.***")
 
     return {"Hello": "Root of Docusign Integration API"}
