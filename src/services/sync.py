@@ -6,10 +6,40 @@ from src.services.monday import MondayService
 
 
 class SyncService:
+    """Service responsible for synchronizing data between CSV files and Monday.com boards.
+
+    This service handles the synchronization of projects and subtasks from CSV data to Monday.com,
+    including creation of new items and updates to existing ones.
+
+    Args:
+        monday_service (MondayService): Service instance for interacting with Monday.com API
+
+    Methods:
+        sync_projects(df_projects): Synchronizes project data from CSV to Monday.com projects board
+        sync_subtasks(df_subtasks): Synchronizes subtask data from CSV to Monday.com subtasks board
+    """
+
     def __init__(self, monday_service: MondayService):
         self.monday_service = monday_service
 
     def sync_projects(self, df_projects):
+        """Synchronizes project data from a DataFrame to Monday.com projects board.
+        
+        Handles the creation of new projects and updates to existing ones by comparing
+        the provided CSV data against existing items in Monday.com.
+
+        Args:
+            df_projects (pandas.DataFrame): DataFrame containing project data to sync.
+                Must include a 'Key' column for unique identification.
+                Can be None or empty, in which case the method returns early.
+
+        Returns:
+            None
+
+        Note:
+            Projects are identified by their 'Key' value when matching against
+            existing Monday.com items."""
+        
         if df_projects is None or df_projects.empty:
             return
 
@@ -45,6 +75,24 @@ class SyncService:
         return
 
     def sync_subtasks(self, df_subtasks):
+        """Synchronizes subtask data from a DataFrame to Monday.com subtasks board.
+        
+        Handles the creation of new subtasks and updates to existing ones by comparing
+        the provided CSV data against existing items in Monday.com.
+
+        Args:
+            df_subtasks (pandas.DataFrame): DataFrame containing subtask data to sync.
+                Must include a 'Key' column for unique identification.
+                Can be None or empty, in which case the method returns early.
+
+        Returns:
+            None
+
+        Note:
+            Subtasks are identified by their 'Key' value when matching against
+            existing Monday.com items.
+        """
+        
         if df_subtasks is None or df_subtasks.empty:
             return
 

@@ -33,7 +33,16 @@ class MondayService:
     ) -> tuple:
         """
         Prepare mutations for creating or updating items based on the CSV DataFrame and existing items.
-        @return: Tuple of (items_to_create, items_to_update)
+        
+        Args:
+            csv_df (pd.DataFrame): DataFrame containing CSV data
+            board_mapping (dict): Mapping of CSV columns to Monday.com column IDs
+            monday_items (dict): Dictionary of existing Monday.com items
+
+        Returns:
+            tuple: A tuple containing:
+            - items_to_create (list): List of items to be created
+            - items_to_update (list): List of items to be updated
         """
 
         items_to_create = []
@@ -118,15 +127,29 @@ class MondayService:
     def fetch_monday_items(
         self, items_keys: list[str], board_id: str, key_column_id: str
     ) -> dict:
-        """
-        Fetch all items from a Board by key_column_id matching any of items_keys.
+        """Fetch all items from a Board by key_column_id matching any of items_keys.
+
         Uses pagination to retrieve all items if necessary.
+        
         Returns a map of items with the key being the value in the key_column_id.
-        @param items_keys: List of keys to search for in the key_column_id.
-        @param board_id: ID of the board to search.
-        @param key_column_id: ID of the column to match the keys against.
-        @return: Dictionary mapping item keys to their details.
-        """
+
+        Args:
+            items_keys (list[str]): List of keys to search for in the key_column_id
+            board_id (str): ID of the board to search
+            key_column_id (str): ID of the column to match the keys against
+
+        Returns:
+            dict: Dictionary mapping item keys to their details. Format:
+                {
+                    "item_key": {
+                        "id": str,
+                        "name": str,
+                        "column_values": list[dict]
+                    },
+                }
+
+        Raises:
+            httpx.HTTPError: If there's an error in the HTTP request to Monday.com API"""
 
         query = """
           query ($boardId: ID!, $columnId: String!, $itemsKeys: [String]!, $cursor: String) {

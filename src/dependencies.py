@@ -4,7 +4,7 @@ from src.services.monday import MondayService
 from src.services.sync import SyncService
 
 
-def get_monday_service():
+def get_monday_service() -> MondayService:
     return MondayService()
 
 
