@@ -15,6 +15,8 @@
 TODO:
 test fetch times for full boards
 take name modification into account
+deploy to monday code
 
 QUESTIONS
 Can projects/subtasks be deleted from or added to Jira?
+What information will change?

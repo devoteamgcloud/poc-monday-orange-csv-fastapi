@@ -245,11 +245,12 @@ class MondayService:
             logger.info(f"Creating {len(items_to_create)} items...")
 
             create_query = """
-            mutation ($boardId: ID!, $itemName: String!, $columnValues: JSON!) {
+            mutation ($boardId: ID!, $itemName: String!, $createLabels: Boolean, $columnValues: JSON!) {
               create_item (
                 board_id: $boardId,
                 item_name: $itemName,
-                column_values: $columnValues
+                column_values: $columnValues,
+                create_labels_if_missing: $createLabels
               ) {
                 id
               }
@@ -260,6 +261,7 @@ class MondayService:
                     "itemName": item["name"],
                     "boardId": board_id,
                     "columnValues": item["column_values"],
+                    "createLabels": True,
                 }
                 try:
                     print("***Creating item:***")
@@ -283,11 +285,12 @@ class MondayService:
             logger.info(f"Updating {len(items_to_update)} items...")
 
             update_query = """
-            mutation ($itemId: ID!, $boardId: ID!, $columnValues: JSON!) {
+            mutation ($itemId: ID!, $boardId: ID!, $createLabels: Boolean, $columnValues: JSON!) {
                 change_multiple_column_values (
                     board_id: $boardId,
                     item_id: $itemId,
-                    column_values: $columnValues
+                    column_values: $columnValues,
+                    create_labels_if_missing: $createLabels,
                 ) {
                     id
                 }
@@ -298,6 +301,7 @@ class MondayService:
                     "boardId": board_id,
                     "itemId": item["item_id"],
                     "columnValues": json.dumps(item["column_values"]),
+                    "createLabels": True,
                 }
                 try:
                     print("***Updating item ID:***")
