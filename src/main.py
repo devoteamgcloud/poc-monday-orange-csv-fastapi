@@ -14,15 +14,17 @@ app = FastAPI(redoc_url=None, docs_url=None if settings.env == "prod" else "/doc
 
 @app.get("/sync-csv")
 def read_root(monday_service: Annotated[MondayService, Depends()]):
+    # Load and filter CSV data
     df_projects, df_subtasks = csv.load_and_filter("sample.csv")
     logger.info(f"CSV Projects: {len(df_projects)}, Subtasks: {len(df_subtasks)}")
 
-    # Process projects
+    # --- Process projects ----
     if df_projects is not None and not df_projects.empty:
         logger.info("***Processing Projects***")
         projects_keys = df_projects["Key"].tolist()
         key_column_id = settings.project_board_mapping["Key"]
 
+        # Fetch existing projects from Monday
         existing_projects = monday_service.fetch_monday_items(
             board_id=settings.projects_board_id,
             items_keys=projects_keys,

@@ -4,7 +4,7 @@ import pprint
 import httpx
 import pandas as pd
 
-import src.utils.format as format_utils
+import src.utils.monday_values as monday_utils
 from src.config import settings
 from src.logger import logger
 
@@ -53,55 +53,29 @@ class MondayService:
                 monday_item = monday_items[jira_key]
                 changed_columns_values = {}
 
+                # Create a map of column_id to text for easier comparison
+                # TODO: check if this can be optimized by storing this map when fetching items
+                # TODO: check if all columns types are covered by the text field
                 monday_item_columns_dict = {
                     column["id"]: column["text"]
                     for column in monday_item.get("column_values", [])
                 }
 
-                ### Compare each mapped column ###
+                ### Iterate over the Jira-Monday mapping ###
                 for csv_col, monday_id in board_mapping.items():
                     if csv_col not in row:
                         continue
 
+                    # Compare Jira and Monday values
                     jira_value = row[csv_col]
                     monday_value = monday_item_columns_dict.get(monday_id)
-
-                    # Normalize empty values (pandas might return NaN or None while Monday returns empty string
-                    jira_value_str = (
-                        "" if pd.isna(jira_value) else str(jira_value).strip()
-                    )
-                    monday_value_str = (
-                        ""
-                        if monday_value in (None, "null")
-                        else str(monday_value).strip()
+                    are_values_different, jira_value_str = monday_utils.compare_values(
+                        jira_value, monday_value, monday_id
                     )
 
-                    #  Parse Jira date (dd-mm-yyyy HH:MM:SS) and reformat to Monday's (yyyy-mm-dd)
-                    if monday_id.startswith("date_"):
-                        try:
-                            # Parse with dayfirst=True to correctly interpret dd-mm-yyyy format
-                            parsed_date = pd.to_datetime(
-                                jira_value, dayfirst=True, errors="coerce"
-                            )
-
-                            if pd.notna(parsed_date):
-                                # Format using components to ensure correct order
-                                year = parsed_date.year
-                                month = parsed_date.month
-                                day = parsed_date.day
-                                jira_value_str = f"{year:04d}-{month:02d}-{day:02d}"
-                            else:
-                                jira_value_str = ""
-
-                        except Exception as e:
-                            logger.warning(
-                                f"Could not parse date '{jira_value}': {str(e)}"
-                            )
-                            jira_value_str = ""
-
-                    # Compare string representation
-                    if jira_value_str != monday_value_str:
-                        formatted_value = format_utils.format_value_for_mutation(
+                    # Format Jira value for Monday mutation if different
+                    if are_values_different:
+                        formatted_value = monday_utils.format_value_for_mutation(
                             jira_value, monday_id
                         )
                         if formatted_value is not None:
@@ -123,7 +97,7 @@ class MondayService:
                 new_item_columns = {}
                 for csv_col, monday_id in board_mapping.items():
                     if csv_col in row and pd.notna(row[csv_col]):
-                        formatted_value = format_utils.format_value_for_mutation(
+                        formatted_value = monday_utils.format_value_for_mutation(
                             row[csv_col], monday_id
                         )
                         if formatted_value is not None:
@@ -136,7 +110,7 @@ class MondayService:
                     }
                 )
                 logger.info(
-                    f"Item '{jira_key}' will be created with values: {new_item_columns}"
+                    f"Item '{row["Summary"]}' will be created with values: {new_item_columns}"
                 )
 
         return items_to_create, items_to_update
