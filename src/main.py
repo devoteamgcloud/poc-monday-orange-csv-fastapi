@@ -46,4 +46,32 @@ def read_root(monday_service: Annotated[MondayService, Depends()]):
     monday_service.execute_mutations(settings.projects_board_id, projects_to_create, projects_to_update)
     logger.info("***Finished processing projects.***")
 
-    return {"Hello": "Root of Docusign Integration API"}
+    # --- Process subtasks ----
+    if df_subtasks is not None and not df_subtasks.empty:
+        logger.info("***Processing Subtasks***")
+        subtasks_keys = df_subtasks["Key"].tolist()
+        key_column_id = settings.project_board_mapping["Key"]
+
+        # Fetch existing subtasks from Monday
+        existing_subtasks = monday_service.fetch_monday_items(
+            board_id=settings.subtasks_board_id,
+            items_keys=subtasks_keys,
+            key_column_id=key_column_id,
+        )
+        print("Existing subtasks in Monday:")
+        pprint.pprint(existing_subtasks)
+
+    # Prepare inserts and mutations by comparing CSV with existing items in Monday
+    subtasks_to_create, subtasks_to_update = monday_service.prepare_mutations(
+        csv_df=df_subtasks, board_mapping=settings.project_board_mapping, monday_items=existing_subtasks
+    )
+    print("***Subtasks to create***")
+    pprint.pprint(subtasks_to_create)
+    print("***Subtasks to update***")
+    pprint.pprint(subtasks_to_update)
+
+    # Insert and update subtasks in Monday
+    monday_service.execute_mutations(settings.subtasks_board_id, subtasks_to_create, subtasks_to_update)
+    logger.info("***Finished processing subtasks.***")
+
+    return {"Success": "Sync of CSV to Monday complete."}

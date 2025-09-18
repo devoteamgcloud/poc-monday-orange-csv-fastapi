@@ -7,11 +7,14 @@
     ! assign result to a dictionnary
 3. Compare CSV projects with Monday query result and format data to insert new projects and update existing ones
 4. Apply the mutations
+5. Repeat steps 2 3 4 for subtasks
 
 
 
 
 TODO:
 test fetch times for full boards
+take name modification into account
 
 QUESTIONS
+Can projects/subtasks be deleted from or added to Jira?
