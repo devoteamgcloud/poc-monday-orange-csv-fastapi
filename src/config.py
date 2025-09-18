@@ -1,6 +1,10 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from src.models import mapping
+
+ROOT_DIR = Path(__file__).parent.parent
 
 
 class Settings(BaseSettings):
@@ -17,7 +21,9 @@ class Settings(BaseSettings):
     project_board_mapping: dict = mapping.PROJECT_BOARD_CONFIG
     subtask_board_mapping: dict = mapping.SUBTASK_BOARD_CONFIG
 
-    model_config = SettingsConfigDict(env_file=".env")
-
+    model_config = SettingsConfigDict(
+        env_file=str(ROOT_DIR / ".env"),
+        env_file_encoding="utf-8"
+    )
 
 settings = Settings()
