@@ -14,7 +14,6 @@
 
 TODO:
 test fetch times for full boards
-take name modification into account
 deploy to monday code
 
 QUESTIONS
